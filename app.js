@@ -197,6 +197,21 @@
     return '<span class="brand-mark" aria-hidden="true">' + esc(DEPT.shortName || "CSE") + "</span>";
   }
 
+  /* Payment link: only absolute https URLs are accepted. */
+  function paymentLink() {
+    var p = CFG.PAYMENT || {};
+    var u = String(p.LINK || "").trim();
+    return /^https:\/\/[^\s"'<>]+$/i.test(u) ? u : "";
+  }
+  function payButton(page) {
+    var p = CFG.PAYMENT || {};
+    if (!p.ENABLED) return "";
+    var link = paymentLink();
+    var direct = p.DIRECT && link;
+    return '<a class="pay-btn" href="' + esc(direct ? link : "/pay") + '"' + (direct ? ' rel="noopener noreferrer"' : "") +
+      (page === "pay" ? ' aria-current="page"' : "") + '><span aria-hidden="true">&#8377;</span> ' + esc(p.BUTTON_LABEL || "Pay Online") + "</a>";
+  }
+
   function renderHeader(page) {
     var host = document.getElementById("site-header");
     if (!host) return;
@@ -205,7 +220,7 @@
       : "";
     var util = UTIL.map(function (n) {
       return '<a href="' + n[1] + '"' + (n[0] === page ? ' aria-current="page"' : "") + ">" + esc(n[2]) + "</a>";
-    }).join("") + '<a href="/admin" class="util-login">Staff login</a>';
+    }).join("") + '<a href="/admin" class="util-login">Staff login</a>' + payButton(page);
     var nav = NAV.map(function (n) {
       return '<li><a href="' + n[1] + '"' + (n[0] === page ? ' aria-current="page"' : "") + ">" + esc(n[2]) + "</a></li>";
     }).join("");
@@ -250,7 +265,7 @@
       '<li><a href="/contact">Contact department</a></li></ul></div>' +
       '<div><h2 class="footer-title">Explore</h2><ul class="footer-links">' +
       '<li><a href="/notices">Notice board</a></li><li><a href="/activities">Events &amp; activities</a></li>' +
-      '<li><a href="/placements">Placements</a></li><li><a href="/gallery">Gallery</a></li><li><a href="/admin">Staff login</a></li></ul></div>' +
+      '<li><a href="/placements">Placements</a></li><li><a href="/gallery">Gallery</a></li>' + ((CFG.PAYMENT || {}).ENABLED ? '<li><a href="/pay">Online payment</a></li>' : "") + '<li><a href="/admin">Staff login</a></li></ul></div>' +
       "</div>" +
       '<div class="footer-bottom"><div class="container"><p>&copy; ' + new Date().getFullYear() + " " + esc(DEPT.name || "") + ", " + esc(DEPT.university || "") + ".</p>" +
       (CFG.DEVELOPER_CREDIT ? "<p>" + esc(CFG.DEVELOPER_CREDIT) + "</p>" : "") + mode + "</div></div></footer>";
@@ -294,6 +309,7 @@
     isLive: function () { return live; },
     isConfigured: function () { return configured; },
     usedFallback: function () { return usedFallback; },
+    paymentLink: paymentLink,
     setMain: setMain,
     start: start
   };

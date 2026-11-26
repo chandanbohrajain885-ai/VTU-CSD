@@ -685,6 +685,47 @@
     });
   }
 
+  function pay() {
+    var P = A.config.PAYMENT || {};
+    var linkUrl = A.paymentLink();
+    var host = "";
+    try { host = linkUrl ? new URL(linkUrl).hostname : ""; } catch (e) { host = ""; }
+    var provider = P.PROVIDER_NAME ? esc(P.PROVIDER_NAME) : "our payment gateway";
+    var methods = (P.METHODS || []).map(function (m) { return "<li>" + esc(m) + "</li>"; }).join("");
+    var qEmail = P.QUERIES_EMAIL || DEPT.email || "";
+
+    var action;
+    if (!P.ENABLED) {
+      action = pending("Online payment is not available on this website. Please contact the department office.");
+    } else if (!linkUrl) {
+      action = '<div class="pay-card">' + pending("Online payment has not been enabled yet. Please contact the department office for payment instructions.") +
+        '<button type="button" class="btn pay-go" disabled aria-disabled="true">Proceed to secure payment</button></div>';
+    } else {
+      action = '<div class="pay-card"><p>You will be taken to the secure payment page of <strong>' + provider + "</strong>" +
+        (host ? ' at <code>' + esc(host) + "</code>" : "") + ". Enter the amount and your details there and choose how you want to pay.</p>" +
+        '<a class="btn pay-go" id="pay-go" href="' + esc(linkUrl) + '" rel="noopener noreferrer">Proceed to secure payment <span aria-hidden="true">&rarr;</span></a>' +
+        '<p class="small muted">Check that the address bar shows <code>https://</code>' + (host ? " and <code>" + esc(host) + "</code>" : "") + " before entering any details.</p></div>";
+    }
+
+    var html = '<div class="grid-2-1"><div>' +
+      section("Pay the department online", action +
+        '<h3 class="h4">How it works</h3><ol class="steps">' +
+        "<li>Click <strong>Proceed to secure payment</strong>.</li>" +
+        "<li>Enter the <strong>amount</strong>, your name, email, mobile number and the purpose of payment (for example: fee type, USN/registration number, event name).</li>" +
+        "<li>Choose your payment method and complete the payment.</li>" +
+        "<li>Save the receipt and <strong>transaction ID</strong>. You will need it for any query.</li></ol>", "pay") +
+      section("Accepted payment methods", (methods ? '<ul class="method-list">' + methods + "</ul>" : "") +
+        '<p class="small muted">Available methods are those enabled on the payment gateway account; some may vary.</p>', "methods") +
+      '</div><aside class="side-card"><h2>Stay safe</h2><ul class="plain-list small">' +
+      "<li>This website never asks for your card number, CVV, OTP or UPI PIN. They are entered only on the payment gateway's page.</li>" +
+      "<li>The department will never ask for your OTP or PIN by phone, email or message.</li>" +
+      "<li>Enter the amount carefully. Confirm the correct amount with the department before paying.</li>" +
+      "<li>If money is debited but no receipt is shown, do not pay again. Contact the department with your transaction ID.</li></ul>" +
+      (qEmail ? '<p class="small">Payment queries: ' + link("mailto:" + qEmail, qEmail) + "</p>" : "") + "</aside></div>";
+    A.setMain(pageHead("Online Payment", "Pay securely by card, UPI, net banking or wallet through a hosted payment page.") + body(html));
+    return Promise.resolve();
+  }
+
   function notFoundPage() {
     A.setMain(pageHead("Page not found") + body('<p class="empty">The page you are looking for does not exist or has moved.</p><p><a class="btn btn-primary" href="/">Go to home page</a> <a class="btn" href="/search">Search the site</a></p>'));
     return Promise.resolve();
@@ -693,6 +734,6 @@
   A.start({
     home: home, about: about, academics: academics, people: people, research: research, infrastructure: infrastructure,
     students: students, placements: placements, activities: activities, notices: notices, alumni: alumni,
-    resources: resources, gallery: gallery, contact: contact, search: search, notfound: notFoundPage
+    resources: resources, gallery: gallery, contact: contact, search: search, pay: pay, notfound: notFoundPage
   });
 })();

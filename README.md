@@ -9,7 +9,7 @@ Status: **independent prototype for departmental review**. It is not the officia
 
 | Part | What it does |
 |---|---|
-| Public website (16 pages) | Home, About, Academics, People, Research, Infrastructure, Students, Placements, Activities, Notices, Alumni, Resources, Gallery, Contact, Search, 404 |
+| Public website (17 pages) | Home, About, Academics, People, Research, Infrastructure, Students, Placements, Activities, Notices, Alumni, Resources, Gallery, Contact, Search, **Online Payment**, 404 |
 | Admin portal (`/admin`) | Secure login, dashboard, content editor for 19 content types, draft → review → approval → publish workflow, verification register (CSV export), users & roles, audit log, password reset |
 | Database (`schema.sql`) | Supabase/PostgreSQL with Row Level Security, workflow trigger, audit log, storage bucket with type/size limits |
 
@@ -35,7 +35,9 @@ You asked for a flat zip with no sub-folders. Next.js cannot work without `app/`
 | `schema.sql` | Complete database setup — run in Supabase SQL Editor |
 | `vercel.json` | Clean URLs + security headers (CSP, HSTS, X-Frame-Options…) |
 | `.vercelignore` | Keeps `schema.sql` and this README off the public site |
-| `robots.txt`, `favicon.svg` | SEO / branding basics |
+| `vtu-logo.png` | VTU logo used in the header and admin bar |
+| `favicon.ico`, `favicon-32.png`, `apple-touch-icon.png` | Browser tab / home-screen icons made from the VTU logo |
+| `robots.txt` | SEO basics |
 
 ---
 
@@ -124,10 +126,25 @@ Then set `PROTOTYPE_MODE: false`, `LOGO_URL`, `HERO_IMAGE_URL` and the `--accent
 
 ---
 
-## 7. Pre-launch checklist
+## 7. Online payment (green "Pay Online" button)
+
+**How it works:** the button (top-right on every page) opens `/pay`, which explains the steps and sends the payer to a **hosted payment page** of a licensed gateway. There the payer enters the amount and pays by credit/debit card, UPI (any app or QR scan), net banking or wallet. This website never touches card or UPI data, which is the only sensible way for a static site and keeps you out of PCI-DSS scope.
+
+**To switch it on:**
+1. In a gateway account owned by the **department/university** (not a private or company account), create a payment page where the **customer enters the amount**. For example, Razorpay → Payment Pages → create a page with an amount field set to "Customer decides the amount", plus fields for name, email, phone, USN/purpose. SBI Collect, Cashfree and PayU have equivalents.
+2. Copy its `https://` link into `config.js` → `PAYMENT.LINK`, and set `PROVIDER_NAME` (e.g. "Razorpay").
+3. Optional: `DIRECT: true` makes the green button go straight to the gateway, skipping the instruction page.
+4. Commit and push. Vercel redeploys.
+
+Only `https://` links are accepted. Anything else (e.g. a `javascript:` link) is rejected and the page shows "not yet enabled". Until `LINK` is set, the button still shows, but `/pay` says online payment is not yet enabled.
+
+**Non-negotiable:** collecting money on a VTU-branded page needs written approval from VTU's Finance Officer/Registrar, and the money must land in an official university account. Payments are reconciled in the gateway dashboard. This website does not record who paid.
+
+## 8. Pre-launch checklist
 - [ ] Department confirms it wants the site and who owns it (written)
 - [ ] University approves hosting on Supabase/Vercel (data-handling)
-- [ ] Official logo/brand approval obtained
+- [ ] Official logo/brand approval obtained (logo file in this build is a low-resolution 221 px copy — replace with the official high-resolution file)
+- [ ] Payment link created in a university-owned gateway account, with Finance approval, and tested with a ₹1 payment
 - [ ] All seeded rows verified in the Verification register
 - [ ] At least **two** active administrators (HOD + Dept Admin)
 - [ ] Sign-up disabled, redirect URL set, password reset tested

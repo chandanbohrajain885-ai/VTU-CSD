@@ -293,7 +293,8 @@
     if (isReviewer()) nav += '<li><a href="#/audit">Audit log</a></li>';
     nav += '<li><a href="#/account">My account</a></li>';
     var roleName = (ROLES.filter(function (r) { return r[0] === role(); })[0] || [, role()])[1];
-    root.innerHTML = '<header class="admin-bar"><div class="admin-bar-inner"><a class="admin-brand" href="#/">' + esc(A.dept.shortName || "CSE") + " Admin</a>" +
+    var logo = A.safeUrl(CFG.LOGO_URL);
+    root.innerHTML = '<header class="admin-bar"><div class="admin-bar-inner"><a class="admin-brand" href="#/">' + (logo ? '<img src="' + esc(logo) + '" alt="" class="admin-logo">' : "") + esc(A.dept.shortName || "CSE") + " Admin</a>" +
       '<span class="admin-user">' + esc(S.profile.full_name || S.user.email) + ' · <span class="muted">' + esc(roleName) + "</span></span>" +
       '<a class="btn btn-small btn-ghost-light" href="/" target="_blank" rel="noopener">View site</a><button class="btn btn-small" type="button" id="so">Sign out</button></div></header>' +
       '<div class="admin-layout"><nav class="admin-nav" aria-label="Administration"><ul>' + nav + "</ul></nav>" +
